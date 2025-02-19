@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<modification>
+	<name>Attributes Category</name>
+	<code>attribute_category.ocmod</code>
+	<author>http://seregin-pro.ru/</author>
+	<version>3.0.1</version>
+	<link>http://seregin-pro.ru/</link>
+	
+	<!-- 3.x -->
+	
+	<!-- controller -->
+	
+	<file path="admin/controller/catalog/product.php">
+		<operation>
+			<search><![CDATA[=> $product_attribute['attribute_id'],]]></search>
+			<add position="after"><![CDATA[
+				'attribute_status'              => $product_attribute['attribute_status'],
+			]]></add>
+		</operation>
+	</file>
+	<file path="catalog/controller/extension/module/featured.php">
+		<operation>
+			<search index="0"><![CDATA[$this->load->model('catalog/product');]]></search>
+			<add position="after"><![CDATA[
+				$data['attribute_category_title'] = $this->config->get('module_attribute_category_title');
+				$this->load->model('extension/module/attribute_category');
+			]]></add>
+		</operation>
+		<operation>
+			<search><![CDATA[products'][] = array(]]></search>
+			<add position="after"><![CDATA[
+				'attribute_groups' => $this->model_extension_module_attribute_category->getProductAttributes($product_info['product_id']),
+			]]></add>
+		</operation>
+	</file>
+	<file path="catalog/controller/extension/module/{bestseller.php,latest.php,special.php,alsobuy.php}|catalog/controller/product/{category.php,manufacturer.php,search.php,special.php,product.php}">
+		<operation>
+			<search index="0"><![CDATA[$this->load->model('catalog/product');]]></search>
+			<add position="after"><![CDATA[
+				$data['attribute_category_title'] = $this->config->get('module_attribute_category_title');
+				$this->load->model('extension/module/attribute_category');
+			]]></add>
+		</operation>
+		<operation>
+			<search><![CDATA[products'][] = array(]]></search>
+			<add position="after"><![CDATA[
+				'attribute_groups' => $this->model_extension_module_attribute_category->getProductAttributes($result['product_id']),
+			]]></add>
+		</operation>
+	</file>
+	
+	<!-- view -->
+	
+	<file path="catalog/view/theme/*/template/extension/module/{bestseller.twig,latest.twig,featured.twig,special.twig,alsobuy.twig}|catalog/view/theme/*/template/product/{category.twig,manufacturer_info.twig,search.twig,special.twig,product.twig}">
+		<operation>
+			<search><![CDATA[{% if product.price %}]]></search>
+			<add position="before"><![CDATA[
+				{% if product.attribute_groups %}
+				<div class="row">
+				  {% for attribute_group in product.attribute_groups %}
+				  {% if attribute_category_title %}
+				  <div class="col-md-12"><strong>{{ attribute_group.name }}</strong></div>
+				  {% endif %}
+				  {% for attribute in attribute_group.attribute %}
+				  <div class="col-md-6">{{ attribute.name }}</div>
+				  <div class="col-md-6"><p class="text-right">{{ attribute.text }}</p></div>
+				  {% endfor %}
+				  {% endfor %}
+				</div>
+				{% endif %}
+			]]></add>
+		</operation>
+	</file>
+	<file path="admin/view/template/catalog/product_form.twig">
+		<operation>
+			<search index="0"><![CDATA[<td colspan="2"></td>]]></search>
+			<add position="replace"><![CDATA[<td colspan="3"></td>]]></add>
+		</operation>
+		<operation>
+			<search><![CDATA[<td class="text-left">{{ entry_attribute }}</td>]]></search>
+			<add position="after"><![CDATA[
+				<td class="text-left">{{ entry_status }}</td>
+			]]></add>
+		</operation>
+		<operation>
+			<search><![CDATA[value="{{ product_attribute.attribute_id }}" /></td>]]></search>
+			<add position="after"><![CDATA[
+				<td class="text-left">
+                  <select name="product_attribute[{{ attribute_row }}][attribute_status]" class="form-control">
+                    {% if product_attribute.attribute_status %}
+                    <option value="1" selected="selected">{{ text_yes }}</option>
+                    <option value="0">{{ text_no }}</option>
+                    {% else %}
+                    <option value="1">{{ text_yes }}</option>
+                    <option value="0" selected="selected">{{ text_no }}</option>
+                    {% endif %}
+                  </select>
+				</td>
+			]]></add>
+		</operation>
+		<operation>
+			<search><![CDATA[name="product_attribute[' + attribute_row + '][attribute_id]" value="" /></td>';]]></search>
+			<add position="after"><![CDATA[
+				html += '  <td class="left">';
+				html += '    <select name="product_attribute[' + attribute_row + '][attribute_status]" class="form-control">>';
+				html += '<option value="1" selected="selected">{{ text_yes }}</option>';
+                html += '<option value="0">{{ text_no }}</option>';
+				html += '    </select>';
+				html += '  </td>';
+			]]></add>
+		</operation>
+	</file>
+	
+	<!-- model -->
+	
+	<file path="admin/model/catalog/product.php">
+		<operation>
+			<search><![CDATA[=> $product_attribute['attribute_id'],]]></search>
+			<add position="after"><![CDATA[
+				'attribute_status'              => $product_attribute['attribute_status'],
+			]]></add>
+		</operation>
+		<operation>
+			<search><![CDATA[SELECT attribute_id]]></search>
+			<add position="replace"><![CDATA[SELECT attribute_id, attribute_status]]></add>
+		</operation>
+		<operation>
+			<search><![CDATA[attribute_id = '" . (int)$product_attribute['attribute_id'] . "',]]></search>
+			<add position="replace"><![CDATA[attribute_id = '" . (int)$product_attribute['attribute_id'] . "', attribute_status = '" . (int)$product_attribute['attribute_status'] . "',]]></add>
+		</operation>
+	</file>
+	
+</modification>
